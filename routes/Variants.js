@@ -84,6 +84,7 @@ router.delete("/variants/:id", async (req, res) => {
   }
 });
 
+
 router.get("/products-with-variants", async (req, res) => {
   const userId = req.query.user_id;
   const page = parseInt(req.query.page) || 1;
@@ -95,11 +96,27 @@ router.get("/products-with-variants", async (req, res) => {
   }
 
   try {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: "المستخدم غير موجود" });
+    }
+
     const hiddenVariants = await UserHiddenVariant.findAll({
       where: { user_id: userId },
       attributes: ["variant_id"],
     });
     const hiddenIds = hiddenVariants.map(h => h.variant_id);
+
+    let variantWhere = hiddenIds.length
+      ? { id: { [Op.notIn]: hiddenIds } }
+      : {};
+
+    if (user.role === "user") {
+      variantWhere = {
+        ...variantWhere,
+        status: "قيد التجهيز",
+      };
+    }
 
     const { rows } = await Product.findAndCountAll({
       limit,
@@ -108,7 +125,7 @@ router.get("/products-with-variants", async (req, res) => {
         {
           model: ProductVariant,
           as: "variants",
-          where: hiddenIds.length ? { id: { [require("sequelize").Op.notIn]: hiddenIds } } : {},
+          where: variantWhere,
           required: true,
           separate: true,
           order: [["createdAt", "DESC"]],
@@ -116,14 +133,14 @@ router.get("/products-with-variants", async (req, res) => {
             {
               model: User,
               as: "preparer",
-              attributes: ["id", "name"]
+              attributes: ["id", "name"],
             },
             {
               model: User,
-              as: "creator",      
-              attributes: ["id", "name"] 
-            }
-          ]
+              as: "creator",
+              attributes: ["id", "name"],
+            },
+          ],
         },
       ],
     });

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const upload = multer();
-const { ProductVariant, Product, UserHiddenVariant } = require("../models");
+const { ProductVariant, Product, UserHiddenVariant, User} = require("../models");
 const { sendNotificationToRole } = require("../services/notifications");
 
 router.post("/products/:id/variants", upload.none(),async (req, res) => {
@@ -109,6 +109,13 @@ router.get("/products-with-variants", async (req, res) => {
           required: true,
           separate: true,
           order: [["createdAt", "DESC"]],
+          include: [
+            {
+              model: User,
+              as: "user",      
+              attributes: ["id", "name"] 
+            }
+          ]
         },
       ],
     });

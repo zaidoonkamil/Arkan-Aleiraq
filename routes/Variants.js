@@ -106,7 +106,8 @@ router.get("/products-with-variants", async (req, res) => {
           model: ProductVariant,
           as: "variants",
           where: hiddenIds.length ? { id: { [require("sequelize").Op.notIn]: hiddenIds } } : {},
-          required: true
+          required: true,
+          order: [["createdAt", "DESC"]],
         },
       ],
       order: [["createdAt", "DESC"]], 

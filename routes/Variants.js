@@ -84,7 +84,6 @@ router.delete("/variants/:id", async (req, res) => {
   }
 });
 
-
 router.get("/products-with-variants", async (req, res) => {
   const userId = req.query.user_id;
   const page = parseInt(req.query.page) || 1;
@@ -107,44 +106,50 @@ router.get("/products-with-variants", async (req, res) => {
     });
     const hiddenIds = hiddenVariants.map(h => h.variant_id);
 
-    let variantWhere = hiddenIds.length
-      ? { id: { [Op.notIn]: hiddenIds } }
-      : {};
-
     if (user.role === "user") {
-      variantWhere = {
-        ...variantWhere,
-        status: "قيد التجهيز",
-      };
+      const products = await Product.findAndCountAll({
+        limit,
+        offset,
+        include: [
+          {
+            model: ProductVariant,
+            as: "variants",
+            where: {
+              status: "قيد التجهيز",
+              ...(hiddenIds.length && { id: { [Op.notIn]: hiddenIds } }),
+            },
+            required: true,
+            order: [["createdAt", "DESC"]],
+            include: [
+              { model: User, as: "preparer", attributes: ["id", "name"] },
+              { model: User, as: "creator", attributes: ["id", "name"] },
+            ],
+          },
+        ],
+      });
+
+      return res.json(products.rows);
+    } else {
+      const products = await Product.findAndCountAll({
+        limit,
+        offset,
+        include: [
+          {
+            model: ProductVariant,
+            as: "variants",
+            where: hiddenIds.length ? { id: { [Op.notIn]: hiddenIds } } : {},
+            required: true,
+            order: [["createdAt", "DESC"]],
+            include: [
+              { model: User, as: "preparer", attributes: ["id", "name"] },
+              { model: User, as: "creator", attributes: ["id", "name"] },
+            ],
+          },
+        ],
+      });
+
+      return res.json(products.rows);
     }
-
-    const { rows } = await Product.findAndCountAll({
-      limit,
-      offset,
-      include: [
-        {
-          model: ProductVariant,
-          as: "variants",
-          where: variantWhere,
-          required: true,
-          order: [["createdAt", "DESC"]],
-          include: [
-            {
-              model: User,
-              as: "preparer",
-              attributes: ["id", "name"],
-            },
-            {
-              model: User,
-              as: "creator",
-              attributes: ["id", "name"],
-            },
-          ],
-        },
-      ],
-    });
-
-    res.json(rows);
   } catch (error) {
     console.error("❌ Error fetching products with variants:", error);
     res.status(500).json({ error: "خطأ داخلي في الخادم" });

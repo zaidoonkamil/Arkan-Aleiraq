@@ -7,7 +7,7 @@ const { sendNotificationToRole } = require("../services/notifications");
 
 router.post("/products/:id/variants", upload.none(),async (req, res) => {
     const { id } = req.params;
-    const { color, size } = req.body;
+    const { color, size, userId} = req.body;
 
     if (!color || !size) {
         return res.status(400).json({ error: "اللون والحجم مطلوبين" });
@@ -22,7 +22,8 @@ router.post("/products/:id/variants", upload.none(),async (req, res) => {
         const variant = await ProductVariant.create({
             product_id: id,
             color,
-            size
+            size,
+            created_by: userId,
         });
 
         await sendNotificationToRole(
@@ -112,7 +113,7 @@ router.get("/products-with-variants", async (req, res) => {
           include: [
             {
               model: User,
-              as: "user",      
+              as: "creator",      
               attributes: ["id", "name"] 
             }
           ]

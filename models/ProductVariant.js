@@ -1,6 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 const Product = require("./product");
+const User = require("./user");
 
 const ProductVariant = sequelize.define("ProductVariant", {
     id: {
@@ -12,6 +13,10 @@ const ProductVariant = sequelize.define("ProductVariant", {
         type: DataTypes.TEXT,
         allowNull: false,
     },
+    created_by: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
     size: {
         type: DataTypes.TEXT,
         allowNull: false,
@@ -20,7 +25,5 @@ const ProductVariant = sequelize.define("ProductVariant", {
     timestamps: true,
 });
 
-Product.hasMany(ProductVariant, { foreignKey: 'product_id', as: 'variants', onDelete: 'CASCADE' });
-ProductVariant.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 
 module.exports = ProductVariant;

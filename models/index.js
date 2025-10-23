@@ -14,6 +14,13 @@ UserDevice.belongsTo(User, { foreignKey: 'user_id', as: 'user', onDelete: 'CASCA
 User.belongsToMany(ProductVariant, { through: UserHiddenVariant, foreignKey: "user_id", as: "hiddenVariants",});
 ProductVariant.belongsToMany(User, { through: UserHiddenVariant, foreignKey: "variant_id", as: "hiddenByUsers",});
 
+ProductVariant.belongsTo(User, { foreignKey: "created_by", as: "creator" });
+User.hasMany(ProductVariant, { foreignKey: "created_by", as: "createdVariants" });
+
+
+Product.hasMany(ProductVariant, { foreignKey: 'product_id', as: 'variants', onDelete: 'CASCADE' });
+ProductVariant.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
+
 module.exports = {
   User,
   UserDevice,

@@ -107,10 +107,9 @@ router.get("/products-with-variants", async (req, res) => {
           as: "variants",
           where: hiddenIds.length ? { id: { [require("sequelize").Op.notIn]: hiddenIds } } : {},
           required: true,
-          order: [["createdAt", "Asc"]],
+          order: [["createdAt", "DESC"]],
         },
       ],
-      order: [["createdAt", "DESC"]], 
     });
 
     res.json(rows);

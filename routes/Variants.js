@@ -83,6 +83,9 @@ router.delete("/variants/:id", async (req, res) => {
 
 router.get("/products-with-variants", async (req, res) => {
   const userId = req.query.user_id;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 30;
+  const offset = (page - 1) * limit;
 
   if (!userId) {
     return res.status(400).json({ error: "يجب إرسال user_id في الاستعلام" });
@@ -95,7 +98,9 @@ router.get("/products-with-variants", async (req, res) => {
     });
     const hiddenIds = hiddenVariants.map(h => h.variant_id);
 
-    const products = await Product.findAll({
+    const { count, rows } = await Product.findAndCountAll({
+      limit,
+      offset,
       include: [
         {
           model: ProductVariant,
@@ -104,9 +109,15 @@ router.get("/products-with-variants", async (req, res) => {
           required: true
         },
       ],
+      order: [["createdAt", "ASC"]],
     });
 
-    res.json(products);
+    res.json({
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+      products: rows,
+    });
   } catch (error) {
     console.error("❌ Error fetching products with variants:", error);
     res.status(500).json({ error: "خطأ داخلي في الخادم" });

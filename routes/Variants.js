@@ -127,7 +127,6 @@ router.get("/products-with-variants", async (req, res) => {
           as: "variants",
           where: variantWhere,
           required: true,
-          separate: true,
           order: [["createdAt", "DESC"]],
           include: [
             {

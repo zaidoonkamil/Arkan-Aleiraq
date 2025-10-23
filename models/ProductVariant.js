@@ -17,6 +17,11 @@ const ProductVariant = sequelize.define("ProductVariant", {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
+    status: {
+        type: DataTypes.ENUM("قيد التجهيز", "تم التجهيز"),
+        allowNull: false,
+        defaultValue: "قيد التجهيز"
+    },
     size: {
         type: DataTypes.TEXT,
         allowNull: false,

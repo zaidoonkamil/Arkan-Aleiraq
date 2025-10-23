@@ -5,20 +5,6 @@ const upload = multer();
 const { ProductVariant, Product, UserHiddenVariant, User} = require("../models");
 const { sendNotificationToRole } = require("../services/notifications");
 
-router.post("/fix-created-by", async (req, res) => {
-  try {
-    await ProductVariant.update(
-      { created_by: 2 },
-      { where: {} }
-    );
-
-    res.json({ message: "تم تحديث جميع ProductVariants ووضع created_by = 2" });
-  } catch (error) {
-    console.error("❌ Error updating created_by:", error);
-    res.status(500).json({ error: "خطأ داخلي في الخادم" });
-  }
-});
-
 router.post("/products/:id/variants", upload.none(),async (req, res) => {
     const { id } = req.params;
     const { color, size, userId} = req.body;
@@ -38,6 +24,7 @@ router.post("/products/:id/variants", upload.none(),async (req, res) => {
             color,
             size,
             created_by: userId,
+            status: "قيد التجهيز",
         });
 
         await sendNotificationToRole(
@@ -142,6 +129,35 @@ router.get("/products-with-variants", async (req, res) => {
   }
 });
 
+router.put("/variants/:id/complete", async (req, res) => {
+  const { id } = req.params;
+  const userId = req.body.user_id;
+
+  try {
+    const variant = await ProductVariant.findByPk(id, {
+      include: [{ model: Product, as: "product" }],
+    });
+    if (!variant) return res.status(404).json({ error: "الـ variant غير موجود" });
+
+    if (variant.status === "تم التجهيز") {
+      return res.status(400).json({ error: "تم تجهيز هذا النوع مسبقًا من قبل مستخدم آخر" });
+    }
+    const user = await User.findByPk(userId);
+    if (!user) return res.status(404).json({ error: "المستخدم غير موجود" });
+
+    variant.status = "تم التجهيز";
+    await variant.save();
+    await sendNotificationToRole(
+    "agent",
+      `تم تحديث النوع (${variant.color} - ${variant.size}) من المنتج "${variant.product.title}" بواسطة ${user.name}`,
+      "تحديث حالة النوع"
+    );
+    res.json({ message: "تم تجهيز النوع بنجاح", variant });
+  } catch (error) {
+    console.error("❌ Error updating variant status:", error);
+    res.status(500).json({ error: "خطأ داخلي في الخادم" });
+  }
+});
 
 
 module.exports = router;

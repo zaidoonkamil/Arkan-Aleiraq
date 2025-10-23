@@ -109,10 +109,9 @@ router.get("/products-with-variants", async (req, res) => {
           required: true
         },
       ],
-      order: [["createdAt", "ASC"]], // ترتيب من الأقرب للأحدث
+      order: [["createdAt", "DESC"]], 
     });
 
-    // إرجاع فقط لستة المنتجات مع الـ variants
     res.json(rows);
   } catch (error) {
     console.error("❌ Error fetching products with variants:", error);

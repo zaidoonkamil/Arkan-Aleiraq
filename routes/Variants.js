@@ -4,6 +4,7 @@ const multer = require("multer");
 const upload = multer();
 const { ProductVariant, Product, UserHiddenVariant, User} = require("../models");
 const { sendNotificationToRole } = require("../services/notifications");
+const { Op } = require("sequelize");
 
 router.post("/products/:id/variants", upload.none(),async (req, res) => {
     const { id } = req.params;
@@ -112,6 +113,11 @@ router.get("/products-with-variants", async (req, res) => {
           separate: true,
           order: [["createdAt", "DESC"]],
           include: [
+            {
+              model: User,
+              as: "preparer",
+              attributes: ["id", "name"]
+            },
             {
               model: User,
               as: "creator",      

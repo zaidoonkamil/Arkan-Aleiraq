@@ -5,6 +5,20 @@ const upload = multer();
 const { ProductVariant, Product, UserHiddenVariant, User} = require("../models");
 const { sendNotificationToRole } = require("../services/notifications");
 
+router.post("/fix-created-by", async (req, res) => {
+  try {
+    await ProductVariant.update(
+      { created_by: 2 },
+      { where: {} }
+    );
+
+    res.json({ message: "تم تحديث جميع ProductVariants ووضع created_by = 2" });
+  } catch (error) {
+    console.error("❌ Error updating created_by:", error);
+    res.status(500).json({ error: "خطأ داخلي في الخادم" });
+  }
+});
+
 router.post("/products/:id/variants", upload.none(),async (req, res) => {
     const { id } = req.params;
     const { color, size, userId} = req.body;

@@ -139,6 +139,7 @@ router.get("/products-with-variants", async (req, res) => {
             as: "variants",
             where: hiddenIds.length ? { id: { [Op.notIn]: hiddenIds } } : {},
             required: true,
+            separate: true,
             order: [["createdAt", "DESC"]],
             include: [
               { model: User, as: "preparer", attributes: ["id", "name"] },

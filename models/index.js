@@ -21,6 +21,10 @@ User.hasMany(ProductVariant, { foreignKey: "created_by", as: "createdVariants" }
 Product.hasMany(ProductVariant, { foreignKey: 'product_id', as: 'variants', onDelete: 'CASCADE' });
 ProductVariant.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 
+ProductVariant.belongsTo(User, { foreignKey: "prepared_by", as: "preparer" });
+User.hasMany(ProductVariant, { foreignKey: "prepared_by", as: "preparedVariants" });
+
+
 module.exports = {
   User,
   UserDevice,

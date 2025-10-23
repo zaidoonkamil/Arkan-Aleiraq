@@ -137,21 +137,25 @@ router.put("/variants/:id/complete", async (req, res) => {
     const variant = await ProductVariant.findByPk(id, {
       include: [{ model: Product, as: "product" }],
     });
-    if (!variant) return res.status(404).json({ error: "الـ variant غير موجود" });
 
+    if (!variant) return res.status(404).json({ error: "الـ variant غير موجود" });
     if (variant.status === "تم التجهيز") {
       return res.status(400).json({ error: "تم تجهيز هذا النوع مسبقًا من قبل مستخدم آخر" });
     }
+
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ error: "المستخدم غير موجود" });
 
     variant.status = "تم التجهيز";
+    variant.prepared_by = user.id;
     await variant.save();
+
     await sendNotificationToRole(
-    "agent",
+      "agent",
       `تم تحديث النوع (${variant.color} - ${variant.size}) من المنتج "${variant.product.title}" بواسطة ${user.name}`,
       "تحديث حالة النوع"
     );
+
     res.json({ message: "تم تجهيز النوع بنجاح", variant });
   } catch (error) {
     console.error("❌ Error updating variant status:", error);
